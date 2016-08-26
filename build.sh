@@ -1,1 +1,1 @@
-docker build --rm -f $1 -t devbox .
+docker build --rm -f 01-devbox.dockerfile -t devbox .
