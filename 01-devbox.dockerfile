@@ -32,7 +32,7 @@ RUN update-alternatives --config ruby
 RUN update-alternatives --display ruby
 RUN gem install --no-ri --no-rdoc guard guard-rake guard-livereload guard-process guard-shell rb-readline pygments.rb asciidoctor nokogiri
 
-## Go and fzf
+## Go
 RUN cd / && curl \
     https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz | \
     tar -xz && mv go go1.4
@@ -40,8 +40,6 @@ ENV GOROOT /go1.4
 ENV PATH /go1.4/bin:$PATH
 RUN apt-get install -y lib32ncurses5-dev && \
     cd $GOROOT/src && GOARCH=386 ./make.bash
-RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-RUN ~/.fzf/install
 
 # My home
 ENV USERNAME reborg
@@ -63,6 +61,8 @@ RUN mkdir -p /home/$USERNAME/.vim/bundle/
 RUN cat /home/$USERNAME/dot/rc/vimrc | sed "s/\" Clojure Here/Plugin 'neovim\/node-host'/" >> /home/$USERNAME/.config/nvim/init.vim
 RUN git clone https://github.com/VundleVim/Vundle.vim.git /home/$USERNAME/.vim/bundle/Vundle.vim
 RUN nvim +BundleInstall +qall
+RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+RUN ~/.fzf/install
 
 # Java, lein and clj stuff
 USER root
@@ -73,8 +73,11 @@ RUN chmod +x /usr/local/bin/lein
 USER $USERNAME
 RUN mkdir -p /home/$USERNAME/.lein
 COPY lein-profile.clj /home/$USERNAME/.lein/profile.clj
+USER root
+RUN chown reborg:reborg /home/$USERNAME/.lein/profile.clj
+USER $USERNAME
 WORKDIR /home/$USERNAME
-RUN echo "should trigger lein downloads"
+RUN echo "this should trigger lein downloads"
 RUN /usr/local/bin/lein new tmp
 
 ## RC files
