@@ -11,7 +11,7 @@ RUN add-apt-repository ppa:pi-rho/dev
 RUN add-apt-repository ppa:neovim-ppa/unstable
 RUN apt-add-repository ppa:brightbox/ruby-ng
 RUN apt-get -y update
-RUN apt-get install -y openssh-server sudo git tmux curl tree htop unzip build-essential libncurses-dev libgpm-dev python-software-properties debconf-utils ruby2.2 ruby2.2-dev python-pygments nodejs npm neovim
+RUN apt-get install -y openssh-server sudo git tmux curl tree htop unzip build-essential libncurses-dev libgpm-dev python-software-properties debconf-utils ruby2.2 ruby2.2-dev python-pygments nodejs npm neovim ack-grep
 
 ## Ruby setup
 RUN update-alternatives --remove ruby /usr/bin/ruby2.2
@@ -31,6 +31,10 @@ RUN update-alternatives \
 RUN update-alternatives --config ruby
 RUN update-alternatives --display ruby
 RUN gem install --no-ri --no-rdoc guard guard-rake guard-livereload guard-process guard-shell rb-readline pygments.rb asciidoctor nokogiri
+
+## java setup
+RUN echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | sudo debconf-set-selections
+RUN apt-get install -y oracle-java8-installer
 
 ## Go
 RUN cd / && curl \
@@ -64,21 +68,19 @@ RUN nvim +BundleInstall +qall
 RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
 RUN ~/.fzf/install
 
-# Java, lein and clj stuff
+# lein and clj stuff
 USER root
-RUN echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | sudo debconf-set-selections
-RUN apt-get install -y oracle-java8-installer
 RUN curl https://raw.github.com/technomancy/leiningen/stable/bin/lein >> /usr/local/bin/lein
 RUN chmod +x /usr/local/bin/lein
 USER $USERNAME
 RUN mkdir -p /home/$USERNAME/.lein
-COPY lein-profile.clj /home/$USERNAME/.lein/profile.clj
+COPY lein-profile.clj /home/$USERNAME/.lein/profiles.clj
 USER root
-RUN chown reborg:reborg /home/$USERNAME/.lein/profile.clj
+RUN chown reborg:reborg /home/$USERNAME/.lein/profiles.clj
 USER $USERNAME
 WORKDIR /home/$USERNAME
 RUN echo "this should trigger lein downloads"
-RUN /usr/local/bin/lein new tmp
+RUN lein upgrade
 
 ## RC files
 WORKDIR /home/$USERNAME/dot
@@ -94,5 +96,10 @@ RUN ln -s /home/$USERNAME/dot/rc/vimrc .vimrc
 USER root
 ADD bashrc /home/$USERNAME/.bashrc
 RUN chown -R $USERNAME:$USERNAME .bashrc
+ENV TZ=Europe/London
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+## inbox: all the latest addition waiting to be moved elsewhere and re-built
+# RUN apt-get install -y add-more-here
 
 USER $USERNAME
