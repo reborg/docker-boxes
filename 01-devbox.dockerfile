@@ -1,4 +1,4 @@
-FROM ubuntu:trusty
+FROM ubuntu:xenial
 
 USER root
 RUN echo "root:root" | chpasswd
@@ -11,7 +11,7 @@ RUN add-apt-repository ppa:pi-rho/dev
 RUN add-apt-repository ppa:neovim-ppa/unstable
 RUN apt-add-repository ppa:brightbox/ruby-ng
 RUN apt-get -y update
-RUN apt-get install -y openssh-server sudo git tmux curl tree htop unzip build-essential libncurses-dev libgpm-dev python-software-properties debconf-utils ruby2.2 ruby2.2-dev python-pygments nodejs npm neovim ack-grep
+RUN apt-get install -y openssh-server sudo git tmux curl tree htop unzip build-essential libncurses-dev libgpm-dev python-software-properties debconf-utils ruby2.2 ruby2.2-dev python-pygments nodejs npm neovim ack-grep rlwrap
 
 ## Ruby setup
 RUN update-alternatives --remove ruby /usr/bin/ruby2.2
@@ -67,8 +67,10 @@ RUN git clone https://github.com/VundleVim/Vundle.vim.git /home/$USERNAME/.vim/b
 RUN nvim +BundleInstall +qall
 RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
 RUN ~/.fzf/install
+RUN mkdir -p /home/$USERNAME/.nvim
+ADD spell /home/$USERNAME/.nvim
 
-# lein and clj stuff
+# lein, boot and clj stuff
 USER root
 RUN curl https://raw.github.com/technomancy/leiningen/stable/bin/lein >> /usr/local/bin/lein
 RUN chmod +x /usr/local/bin/lein
@@ -77,10 +79,12 @@ RUN mkdir -p /home/$USERNAME/.lein
 COPY lein-profile.clj /home/$USERNAME/.lein/profiles.clj
 USER root
 RUN chown reborg:reborg /home/$USERNAME/.lein/profiles.clj
+RUN bash -c "cd /usr/local/bin && curl -fsSLo boot https://github.com/boot-clj/boot-bin/releases/download/latest/boot.sh && chmod 755 boot"
 USER $USERNAME
 WORKDIR /home/$USERNAME
-RUN echo "this should trigger lein downloads"
+RUN echo "this should trigger downloads"
 RUN lein upgrade
+RUN boot -u
 
 ## RC files
 WORKDIR /home/$USERNAME/dot
