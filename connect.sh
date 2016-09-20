@@ -1,1 +1,2 @@
-docker exec -ti devbox script /dev/null
+name=${1:-devbox}
+docker exec -ti $name script /dev/null

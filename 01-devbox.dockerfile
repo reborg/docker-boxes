@@ -36,15 +36,6 @@ RUN gem install --no-ri --no-rdoc guard guard-rake guard-livereload guard-proces
 RUN echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | sudo debconf-set-selections
 RUN apt-get install -y oracle-java8-installer
 
-## Go
-RUN cd / && curl \
-    https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz | \
-    tar -xz && mv go go1.4
-ENV GOROOT /go1.4
-ENV PATH /go1.4/bin:$PATH
-RUN apt-get install -y lib32ncurses5-dev && \
-    cd $GOROOT/src && GOARCH=386 ./make.bash
-
 # My home
 ENV USERNAME reborg
 ENV GITHUB_NAME reborg
@@ -57,7 +48,7 @@ USER $USERNAME
 WORKDIR /home/$USERNAME
 
 # neovim install and config
-RUN echo "vim goodies"
+RUN echo "vim goodies ."
 RUN git clone https://github.com/$GITHUB_NAME/dot.git
 RUN mkdir -p /home/$USERNAME/.config/nvim
 RUN mkdir -p /home/$USERNAME/.vim/bundle/
