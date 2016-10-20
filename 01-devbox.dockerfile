@@ -11,7 +11,7 @@ RUN add-apt-repository ppa:pi-rho/dev
 RUN add-apt-repository ppa:neovim-ppa/unstable
 RUN apt-add-repository ppa:brightbox/ruby-ng
 RUN apt-get -y update
-RUN apt-get install -y openssh-server sudo git tmux curl tree htop unzip build-essential libncurses-dev libgpm-dev python-software-properties debconf-utils ruby2.2 ruby2.2-dev python-pygments nodejs npm neovim ack-grep rlwrap
+RUN apt-get install -y openssh-server sudo git tmux curl tree htop unzip build-essential libncurses-dev libgpm-dev python-software-properties debconf-utils ruby2.2 ruby2.2-dev python-pygments nodejs npm neovim ack-grep rlwrap jq
 
 ## Ruby setup
 RUN update-alternatives --remove ruby /usr/bin/ruby2.2
@@ -47,7 +47,7 @@ USER $USERNAME
 
 WORKDIR /home/$USERNAME
 
-# neovim install and config
+# neovim install, dot and config
 RUN echo "vim goodies ."
 RUN git clone https://github.com/$GITHUB_NAME/dot.git
 RUN mkdir -p /home/$USERNAME/.config/nvim
@@ -58,8 +58,8 @@ RUN git clone https://github.com/VundleVim/Vundle.vim.git /home/$USERNAME/.vim/b
 RUN nvim +BundleInstall +qall
 RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
 RUN ~/.fzf/install
-RUN mkdir -p /home/$USERNAME/.nvim
-ADD spell /home/$USERNAME/.nvim
+RUN mkdir -p /home/$USERNAME/.local/share/nvim/site/spell
+ADD spell /home/$USERNAME/.local/share/nvim/site/spell
 
 # lein, boot and clj stuff
 USER root
