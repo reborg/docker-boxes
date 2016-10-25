@@ -48,7 +48,7 @@ USER $USERNAME
 WORKDIR /home/$USERNAME
 
 # neovim install, dot and config
-RUN echo "vim goodies ."
+RUN echo "vim goodies."
 RUN git clone https://github.com/$GITHUB_NAME/dot.git
 RUN mkdir -p /home/$USERNAME/.config/nvim
 RUN mkdir -p /home/$USERNAME/.vim/bundle/
@@ -56,8 +56,8 @@ RUN mkdir -p /home/$USERNAME/.vim/bundle/
 RUN cat /home/$USERNAME/dot/rc/vimrc | sed "s/\" Clojure Here/Plugin 'neovim\/node-host'/" >> /home/$USERNAME/.config/nvim/init.vim
 RUN git clone https://github.com/VundleVim/Vundle.vim.git /home/$USERNAME/.vim/bundle/Vundle.vim
 RUN nvim +BundleInstall +qall
-RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-RUN ~/.fzf/install
+RUN git clone https://github.com/junegunn/fzf.git
+RUN ~/fzf/install --all
 RUN mkdir -p /home/$USERNAME/.local/share/nvim/site/spell
 ADD spell /home/$USERNAME/.local/share/nvim/site/spell
 
@@ -89,6 +89,8 @@ RUN ln -s /home/$USERNAME/dot/rc/ackrc .ackrc
 RUN ln -s /home/$USERNAME/dot/rc/vimrc .vimrc
 
 USER root
+## Kill .m2 that will be symlinked by bash_profile later.
+RUN rm -rf /home/$USERNAME/.m2
 ADD bashrc /home/$USERNAME/.bashrc
 RUN chown -R $USERNAME:$USERNAME .bashrc
 ENV TZ=Europe/London

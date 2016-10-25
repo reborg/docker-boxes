@@ -6,6 +6,7 @@
 									[cider/cider-nrepl "0.11.0"]
 									[lein-try "0.4.3"]
 									[lein-environ "1.0.0"]
+                  [venantius/ultra "0.5.0"]
 									]
 				:signing {:gpg-key "D1DAFAB4"}
 				:env {
