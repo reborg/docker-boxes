@@ -22,10 +22,12 @@ RUN apt-get update \
     && apt-get clean
 
 RUN echo mysql-server mysql-server/root_password password "''" | debconf-set-selections;\
- echo mysql-server mysql-server/root_password_again password "''" | debconf-set-selections;\
+ echo mysql-server mysql-server/ioot_password_again password "''" | debconf-set-selections;\
   apt-get install -y mysql-server mysql-client
 
 RUN easy_install pip
+RUN pip install fabric
+RUN pip install boto3
 
 RUN gem install --no-ri --no-rdoc bundle
 RUN gem update --system
