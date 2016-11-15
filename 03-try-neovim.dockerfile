@@ -1,3 +1,5 @@
+# Intstall docker
+#
 FROM ubuntu:xenial
 
 USER root
@@ -37,7 +39,8 @@ RUN echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true
 RUN apt-get install -y oracle-java8-installer
 
 # My home
-ENV USERNAME neovim
+ENV USERNAME reborg
+ENV GITHUB_NAME reborg
 ENV TERM xterm-color
 ENV SHELL /bin/bash
 RUN useradd $USERNAME && echo "$USERNAME:$USERNAME" | chpasswd && adduser $USERNAME sudo
@@ -48,9 +51,11 @@ WORKDIR /home/$USERNAME
 
 # neovim install, dot and config
 RUN echo "vim goodies."
+RUN git clone https://github.com/$GITHUB_NAME/dot.git
 RUN mkdir -p /home/$USERNAME/.config/nvim
 RUN mkdir -p /home/$USERNAME/.vim/bundle/
-ADD init.vim /home/$USERNAME/.config/nvim/init.vim
+# This line insert a plugin that I only want here.
+RUN cat /home/$USERNAME/dot/rc/vimrc | sed "s/\" Clojure Here/Plugin 'neovim\/node-host'/" >> /home/$USERNAME/.config/nvim/init.vim
 RUN git clone https://github.com/VundleVim/Vundle.vim.git /home/$USERNAME/.vim/bundle/Vundle.vim
 RUN nvim +BundleInstall +qall
 RUN git clone https://github.com/junegunn/fzf.git
@@ -58,7 +63,7 @@ RUN ~/fzf/install --all
 RUN mkdir -p /home/$USERNAME/.local/share/nvim/site/spell
 ADD spell /home/$USERNAME/.local/share/nvim/site/spell
 
-# lein, boot and clj stuff comment out if you don't care.
+# lein, boot and clj stuff
 USER root
 RUN curl https://raw.github.com/technomancy/leiningen/stable/bin/lein >> /usr/local/bin/lein
 RUN chmod +x /usr/local/bin/lein
@@ -70,11 +75,30 @@ RUN chown reborg:reborg /home/$USERNAME/.lein/profiles.clj
 RUN bash -c "cd /usr/local/bin && curl -fsSLo boot https://github.com/boot-clj/boot-bin/releases/download/latest/boot.sh && chmod 755 boot"
 USER $USERNAME
 WORKDIR /home/$USERNAME
+RUN echo "this should trigger downloads"
+RUN lein upgrade
+RUN boot -u
+
+## RC files
+WORKDIR /home/$USERNAME/dot
+RUN echo "Pulling dot just in case there are recent changes"
+RUN git pull
+WORKDIR /home/$USERNAME
+RUN ln -s /home/$USERNAME/dot/rc/bash_profile .bash_profile
+RUN ln -s /home/$USERNAME/dot/rc/gitconfig .gitconfig
+RUN ln -s /home/$USERNAME/dot/rc/tmux-linux.conf .tmux.conf
+RUN ln -s /home/$USERNAME/dot/rc/ackrc .ackrc
+RUN ln -s /home/$USERNAME/dot/rc/vimrc .vimrc
 
 USER root
+## Kill .m2 that will be symlinked by bash_profile later.
+RUN rm -rf /home/$USERNAME/.m2
 ADD bashrc /home/$USERNAME/.bashrc
 RUN chown -R $USERNAME:$USERNAME .bashrc
 ENV TZ=Europe/London
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+## inbox: all the latest addition waiting to be moved elsewhere and re-built
+# RUN apt-get install -y add-more-here
 
 USER $USERNAME
