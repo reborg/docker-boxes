@@ -79,26 +79,10 @@ RUN echo "this should trigger downloads"
 RUN lein upgrade
 RUN boot -u
 
-## RC files
-WORKDIR /home/$USERNAME/dot
-RUN echo "Pulling dot just in case there are recent changes"
-RUN git pull
-WORKDIR /home/$USERNAME
-RUN ln -s /home/$USERNAME/dot/rc/bash_profile .bash_profile
-RUN ln -s /home/$USERNAME/dot/rc/gitconfig .gitconfig
-RUN ln -s /home/$USERNAME/dot/rc/tmux-linux.conf .tmux.conf
-RUN ln -s /home/$USERNAME/dot/rc/ackrc .ackrc
-RUN ln -s /home/$USERNAME/dot/rc/vimrc .vimrc
-
 USER root
-## Kill .m2 that will be symlinked by bash_profile later.
-RUN rm -rf /home/$USERNAME/.m2
 ADD bashrc /home/$USERNAME/.bashrc
 RUN chown -R $USERNAME:$USERNAME .bashrc
 ENV TZ=Europe/London
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
-## inbox: all the latest addition waiting to be moved elsewhere and re-built
-# RUN apt-get install -y add-more-here
 
 USER $USERNAME
