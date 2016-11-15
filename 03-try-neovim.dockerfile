@@ -1,4 +1,4 @@
-# Intstall docke. Then:
+# Intstall docker. Then:
 
 # dockerfile=${1:-03-try-neovim.dockerfile}
 # name=${2:-neovim}
