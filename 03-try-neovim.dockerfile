@@ -1,4 +1,12 @@
-# Intstall docker
+# Intstall docke. Then:
+
+# dockerfile=${1:-03-try-neovim.dockerfile}
+# name=${2:-neovim}
+# docker build --rm -f $dockerfile -t $name .
+# docker run -d -it -e "TERM=xterm-256color" -e "DEVBOX=$name" -p ${2:-7000-7100:7000-7100} --name $name -v /Users/your-home/:/Users/your-home/ $name /bin/bash
+# docker exec -ti $name script /dev/null
+
+# ... and you should be in your new box with everything installed and your home folder mounted.
 #
 FROM ubuntu:xenial
 
@@ -39,8 +47,7 @@ RUN echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true
 RUN apt-get install -y oracle-java8-installer
 
 # My home
-ENV USERNAME reborg
-ENV GITHUB_NAME reborg
+ENV USERNAME neovim
 ENV TERM xterm-color
 ENV SHELL /bin/bash
 RUN useradd $USERNAME && echo "$USERNAME:$USERNAME" | chpasswd && adduser $USERNAME sudo
@@ -51,11 +58,7 @@ WORKDIR /home/$USERNAME
 
 # neovim install, dot and config
 RUN echo "vim goodies."
-RUN git clone https://github.com/$GITHUB_NAME/dot.git
-RUN mkdir -p /home/$USERNAME/.config/nvim
-RUN mkdir -p /home/$USERNAME/.vim/bundle/
-# This line insert a plugin that I only want here.
-RUN cat /home/$USERNAME/dot/rc/vimrc | sed "s/\" Clojure Here/Plugin 'neovim\/node-host'/" >> /home/$USERNAME/.config/nvim/init.vim
+ADD init.vim /home/$USERNAME/.config/nvim/init.vim
 RUN git clone https://github.com/VundleVim/Vundle.vim.git /home/$USERNAME/.vim/bundle/Vundle.vim
 RUN nvim +BundleInstall +qall
 RUN git clone https://github.com/junegunn/fzf.git
@@ -71,13 +74,10 @@ USER $USERNAME
 RUN mkdir -p /home/$USERNAME/.lein
 COPY lein-profile.clj /home/$USERNAME/.lein/profiles.clj
 USER root
-RUN chown reborg:reborg /home/$USERNAME/.lein/profiles.clj
+RUN chown $USERNAME:$USERNAME /home/$USERNAME/.lein/profiles.clj
 RUN bash -c "cd /usr/local/bin && curl -fsSLo boot https://github.com/boot-clj/boot-bin/releases/download/latest/boot.sh && chmod 755 boot"
 USER $USERNAME
 WORKDIR /home/$USERNAME
-RUN echo "this should trigger downloads"
-RUN lein upgrade
-RUN boot -u
 
 USER root
 ADD bashrc /home/$USERNAME/.bashrc
